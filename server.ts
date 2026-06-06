@@ -242,10 +242,17 @@ function getUnrealizedPnlFromPositions(): number {
 function getEligibleStrategies(strategies: StrategyDna[] = population): StrategyDna[] {
   return strategies
     .filter(s => s && !s.retired)
-    .filter(s => (s.fitness || 0) > 0)
+    .filter(s => {
+      // Allow if strategy has proven backtest fitness
+      if ((s.fitness || 0) > 0) return true;
+      // Allow if strategy is brand-new (backtest found no trades yet)
+      if (!s.metrics || s.metrics.total_trades === 0) return true;
+      // Has backtest trades but 0 fitness — still give it a chance to prove itself live
+      return true;
+    })
     .filter(s => {
       const perf = getStrategyPerformance(s);
-      // Brand-new strategies (no trades yet) get a chance to learn.
+      // Brand-new strategies (no live trades yet) get a chance to learn.
       if (perf.totalTrades === 0) return true;
       // Proven strategies must clear the bar: net profitable, 70%+ win rate,
       // 2x+ profit factor.
