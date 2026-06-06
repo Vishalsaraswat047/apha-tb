@@ -1207,8 +1207,9 @@ async function tickSimulator() {
           afcsActive = false;
         } else {
           // Profitable exit — credit the strategy that produced the trade
-          // with a live-win bonus so evolvePopulation ranks it higher and
-          // picks it as a tournament parent more often.
+          // with a live-win bonus AND update cumulative live PnL so
+          // evolvePopulation ranks it higher and picks it as a tournament
+          // parent more often. liveNetPnl accumulates actual PnL.
           const entryStratId = position.strategyId;
           if (entryStratId) {
             const index = population.findIndex(s => s.id === entryStratId || s.name === position.strategyName);
@@ -1217,7 +1218,8 @@ async function tickSimulator() {
               population[index] = {
                 ...prev,
                 liveWinBonus: Math.min(10, (prev.liveWinBonus || 0) + 1),
-                liveLossPenalty: 0
+                liveLossPenalty: 0,
+                liveNetPnl: parseFloat((((prev.liveNetPnl || 0) + (position.pnl || 0))).toFixed(4))
               };
             }
           }
