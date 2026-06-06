@@ -56,6 +56,7 @@ export interface StrategyDna {
   // crossover and ranking toward actually-profitable strategies.
   liveLossPenalty?: number;
   liveWinBonus?: number;
+  liveNetPnl?: number; // cumulative $ PnL from all of this strategy's live trades
 }
 
 export type MarketRegime = 'Trending Bullish' | 'Trending Bearish' | 'Ranging Dynamic' | 'High Volatility' | 'Low Volatility';
