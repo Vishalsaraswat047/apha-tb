@@ -267,7 +267,7 @@ const SYMBOL_COOLDOWN_MS = 60_000;
 let exitMode: 'DYNAMIC' | 'FIXED_TIME' = 'DYNAMIC';
 let fixedTimeLimitMinutes = 0.0; // fixed-time exit disabled by default until explicitly configured
 
-const TRADE_CONFIDENCE_FLOOR = 70.0; // Hard floor: all live entries require 70%+ confidence. Lowered from 95% to allow trades to flow.
+const TRADE_CONFIDENCE_FLOOR = 60.0; // Balanced floor: allows quality trades to flow while filtering noise
 const AFCS_CONFIDENCE_FLOOR = 94; // percentage threshold if AFCS active (not used for forced 80% override)
 const MIN_STRATEGY_WIN_RATE = 0.70; // Require strategies to win at least 70% of closed trades
 const MIN_STRATEGY_PROFIT_FACTOR = 2.0; // Require strategies to generate at least 2x profit over losses
