@@ -1364,62 +1364,8 @@ async function tickSimulator() {
         }
 
         if (confidence >= minRequiredConfidence) {
-          // ─── LOSS GUARDS: protect capital when the bot is on a cold streak ─
-          // These are hard halts — no trade fires if any guard trips, regardless
-          // of confidence. Goal: never add a losing trade to a losing streak.
-          const recentExits = tradeHistory.filter(t => t && t.type === 'EXIT').slice(-10);
-          const recentLosses = recentExits.filter(t => (t.pnl || 0) <= 0).length;
-          const recentWins   = recentExits.filter(t => (t.pnl || 0) > 0).length;
-          const recentWinRate = recentExits.length > 0 ? recentWins / recentExits.length : 1;
-          const lastThree = recentExits.slice(-3);
-          const lastThreeAllLoss = lastThree.length === 3 && lastThree.every(t => (t.pnl || 0) <= 0);
-
-          // Guard 1: 3 consecutive losses → full trading halt (was 2)
-          if (lastThreeAllLoss) {
-            if (!isHaltedByLossGuard) {
-              pushLog(`🛑 [LOSS GUARD] HALTED: 3 consecutive losses. Trading paused.`);
-            }
-            isHaltedByLossGuard = true;
-            currentSignals.push({
-              symbol: coinTick.symbol,
-              confidence,
-              decision: 'HALT (3 LOSS STREAK)',
-              isAccepted: false,
-              signalType: 'HALT'
-            });
-            continue;
-          }
-
-          // Guard 2: recent win rate below 50% (4+ recent trades) → halt
-          if (recentExits.length >= 4 && recentWinRate < 0.50) {
-            if (!isHaltedByLossGuard) {
-              pushLog(`🛑 [LOSS GUARD] HALTED: recent win rate ${(recentWinRate * 100).toFixed(1)}% < 50% over last ${recentExits.length} trades.`);
-            }
-            isHaltedByLossGuard = true;
-            currentSignals.push({
-              symbol: coinTick.symbol,
-              confidence,
-              decision: 'HALT (LOW RECENT WIN RATE)',
-              isAccepted: false,
-              signalType: 'HALT'
-            });
-            continue;
-          }
-
-          // Guard 3: any loss in the last 1 trade on THIS symbol → skip this symbol
-          const lastOnThisSymbol = tradeHistory
-            .filter(t => t && t.symbol === coinTick.symbol && t.type === 'EXIT')
-            .slice(-1);
-          if (lastOnThisSymbol.length > 0 && (lastOnThisSymbol[0].pnl || 0) <= 0) {
-            currentSignals.push({
-              symbol: coinTick.symbol,
-              confidence,
-              decision: 'SKIP (SYMBOL COOLING DOWN)',
-              isAccepted: false,
-              signalType: 'SKIP'
-            });
-            continue;
-          }
+          // ─── LOSS GUARDS DISABLED per user request — bot trades continuously through drawdowns ─
+          // Logs are emitted for visibility but no halt/skip is imposed.
 
           const logs: string[] = [];
           
