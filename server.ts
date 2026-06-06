@@ -949,6 +949,7 @@ async function tickSimulator() {
         pushLog(`🛡️ [LOSS GUARD WATCH] 3 consecutive losses detected — auto-recover enabled, continuing to trade.`);
       }
       // Halt permanently removed — bot trades through drawdowns
+    }
 
     // ─── Live Binance testnet balance sync ─────────────────────────────
     // The bot trades against the real Binance testnet account, so the
