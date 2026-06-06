@@ -2460,6 +2460,7 @@ app.post("/api/reset-dashboard", async (req, res) => {
       retired: false,  // un-retire on dashboard reset — let the best strategies trade again
       liveLossPenalty: 0,  // clear live-loss penalty on reset
       liveWinBonus: 0,      // clear live-win bonus on reset
+      liveNetPnl: 0,        // clear cumulative live PnL on reset
     }));
 
     // Snapshot market context we must keep
