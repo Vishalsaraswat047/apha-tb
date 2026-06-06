@@ -1,0 +1,15 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+.state/
+state_persistence*.json
+server_port.json
+.cora/
+.vscode/
+server.log
+nohup.out

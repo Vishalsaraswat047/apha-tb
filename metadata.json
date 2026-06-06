@@ -1,0 +1,6 @@
+{
+  "name": "Advanced Crypto Trading Bot",
+  "description": "An automated crypto trading bot featuring a self-evolving genetic algorithm-based strategy system, multi-timeframe analysis, market regime detection, backtesting, and a real-time analytics dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
