@@ -274,7 +274,7 @@ const SYMBOL_COOLDOWN_MS = 60_000;
 let exitMode: 'DYNAMIC' | 'FIXED_TIME' = 'DYNAMIC';
 let fixedTimeLimitMinutes = 0.0; // fixed-time exit disabled by default until explicitly configured
 
-const TRADE_CONFIDENCE_FLOOR = 55.0; // Matches typical confidence output range from the scoring function
+const TRADE_CONFIDENCE_FLOOR = 50.0; // Lowered from 55 to allow more trades through continuously
 const AFCS_CONFIDENCE_FLOOR = 94; // percentage threshold if AFCS active (not used for forced 80% override)
 const MIN_STRATEGY_WIN_RATE = 0.70; // Require strategies to win at least 70% of closed trades
 const MIN_STRATEGY_PROFIT_FACTOR = 2.0; // Require strategies to generate at least 2x profit over losses
