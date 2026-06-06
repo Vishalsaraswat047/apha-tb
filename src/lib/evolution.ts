@@ -472,21 +472,42 @@ export function evolvePopulation(population: StrategyDna[], candles: Candle[], c
   // 1. Backtest everyone to refresh fitness on the latest candle window
   const backtestedPop = population.map(strat => backtestStrategy(strat, candles));
 
-  // 2. Apply LIVE-LOSS PENALTY: if a strategy has a recorded loss count from
-  //    the live trading loop, multiply its fitness down so losing strategies
-  //    are demoted in the next generation. Winners are unaffected.
+  // 2. Apply LIVE-LOSS PENALTY and LIVE-WIN BONUS. The genetic engine must
+  //    heavily weight actual live PnL, not just backtest fitness — backtest
+  //    fitness is overfit to the candle window and does not predict live
+  //    performance. After several live trades the penalty/bonus will
+  //    dominate, and only strategies that actually win live will survive.
   for (const strat of backtestedPop) {
     const liveLosses = (strat as any).liveLossPenalty as number | undefined;
+    const liveWins   = (strat as any).liveWinBonus   as number | undefined;
+    const liveNetPnl = (strat as any).liveNetPnl    as number | undefined;
+
+    // Each live loss: -50% fitness per loss, capped at 99% reduction.
+    // After 2 live losses, fitness is 25% of backtest. After 3, 12.5%.
     if (typeof liveLosses === 'number' && liveLosses > 0) {
-      // Each live loss reduces fitness by 25%, capped at 95% reduction
-      const penalty = Math.min(0.95, liveLosses * 0.25);
+      const penalty = Math.min(0.99, liveLosses * 0.50);
       strat.fitness = parseFloat(((strat.fitness || 0) * (1 - penalty)).toFixed(4));
     }
-    // Winning strategies get a small live-win bonus (capped at +50%)
-    const liveWins = (strat as any).liveWinBonus as number | undefined;
+
+    // Each live win: +25% fitness per win, capped at +200% boost.
     if (typeof liveWins === 'number' && liveWins > 0) {
-      const bonus = Math.min(0.5, liveWins * 0.10);
+      const bonus = Math.min(2.0, liveWins * 0.25);
       strat.fitness = parseFloat(((strat.fitness || 0) * (1 + bonus)).toFixed(4));
+    }
+
+    // Live net PnL: if a strategy has accumulated a positive net PnL live,
+    // it gets a strong boost proportional to profit. If negative, it gets
+    // demoted proportional to loss. This is the most predictive signal.
+    if (typeof liveNetPnl === 'number') {
+      if (liveNetPnl > 0) {
+        // +50% per $1 of net profit, capped at +300%
+        const pnlBoost = Math.min(3.0, liveNetPnl * 0.5);
+        strat.fitness = parseFloat(((strat.fitness || 0) * (1 + pnlBoost)).toFixed(4));
+      } else if (liveNetPnl < 0) {
+        // -30% per $1 of net loss, capped at -90%
+        const pnlPenalty = Math.min(0.90, Math.abs(liveNetPnl) * 0.30);
+        strat.fitness = parseFloat(((strat.fitness || 0) * (1 - pnlPenalty)).toFixed(4));
+      }
     }
   }
 
