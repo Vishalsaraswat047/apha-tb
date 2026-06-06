@@ -835,36 +835,37 @@ function calculateAdvancedConfidence(
     (liquidityScore       * 0.05) +
     (recentPerformanceScore * 0.05);
   
-  // HARD REJECTION CONDITIONS — apply on testnet AND live
+  // Hard rejection conditions — apply on testnet AND live
   // (Previously gated by `!IS_TESTNET`, which meant testnet runs accepted everything.)
   let confidence = weightedConfidence;
 
-  // Reject if extreme volatility chaos
+  // Soft rejection for extreme volatility -
+  // cap at 60% instead of crushing to 50%
   if (volatilityPct > 30) {
-    confidence = Math.min(confidence, 0.50);
+    confidence = Math.min(confidence, 0.60);
   }
 
-  // Reject if conflicting regime (bearish regime for long trades)
+  // Soft rejection for bearish regime when long signals are weak
   if (currentRegime === 'Trending Bearish' && buyVotesSum < 0.70) {
-    confidence = Math.min(confidence, 0.50);
+    confidence = Math.min(confidence, 0.60);
   }
 
-  // Reject if very low liquidity
+  // Softer liquidity penalty — cap at 55% instead of 45%
   if (coinTicker.volume < 25000000) {
-    confidence = Math.min(confidence, 0.45);
+    confidence = Math.min(confidence, 0.55);
   }
 
-  // Reject if fake breakout (high RSI on very low volume)
+  // Fake breakout guard — less aggressive cap
   if (coinTicker.rsi > 80 && coinTicker.volume < 100000000) {
-    confidence = Math.min(confidence, 0.50);
+    confidence = Math.min(confidence, 0.60);
   }
 
-  // Reject if recent failure cluster (3+ losses in last 10 trades)
+  // Loss streak penalty — reduced
   if (tradeHistory.length >= 5) {
     const recentTrades = tradeHistory.slice(-10);
     const recentLosses = recentTrades.filter(t => t.type === 'EXIT' && (t.pnl || 0) < 0).length;
     if (recentLosses >= 3) {
-      confidence = Math.min(confidence, 0.55);
+      confidence = Math.min(confidence, 0.60);
     }
   }
   
