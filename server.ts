@@ -938,44 +938,17 @@ async function tickSimulator() {
     }
 
     // ─── Global loss-guard check (runs every tick) ─────────────────────
-    // Trip the halt flag if the recent trade history shows a cold streak,
-    // independent of any buy signal. The flag persists until /api/reset-dashboard.
+    // NOTE: Halt DISABLED per user request — bot trades continuously.
+    // Logs are still emitted for visibility, but no halt occurs.
     {
       const recentExits = tradeHistory.filter(t => t && t.type === 'EXIT').slice(-10);
       const recentWins   = recentExits.filter(t => (t.pnl || 0) > 0).length;
-      const recentWinRate = recentExits.length > 0 ? recentWins / recentExits.length : 1;
       const lastThree = recentExits.slice(-3);
       const lastThreeAllLoss = lastThree.length === 3 && lastThree.every(t => (t.pnl || 0) <= 0);
-
-      // Halt after 3 consecutive losses — protect capital aggressively
       if (lastThreeAllLoss) {
-        if (!isHaltedByLossGuard) {
-          pushLog(`🛑 [LOSS GUARD] HALTED: 3 consecutive losses. Trading paused until dashboard reset or fresh winner emerges.`);
-        }
-        isHaltedByLossGuard = true;
-        return;  // skip the rest of the tick (no new trades this cycle)
+        pushLog(`🛡️ [LOSS GUARD WATCH] 3 consecutive losses detected — auto-recover enabled, continuing to trade.`);
       }
-      // Halt if recent win rate below 50% over 4+ trades (was 60% / 3+, lowered threshold to allow 1-2 losses without halting)
-      if (recentExits.length >= 4 && recentWinRate < 0.50) {
-        if (!isHaltedByLossGuard) {
-          pushLog(`🛑 [LOSS GUARD] HALTED: recent win rate ${(recentWinRate * 100).toFixed(1)}% < 50% over last ${recentExits.length} trades.`);
-        }
-        isHaltedByLossGuard = true;
-        return;
-      }
-
-      // Auto-clear the halt when the genetic engine has produced a fresh
-      // winning strategy (i.e. a strategy with liveWinBonus > 0 since the
-      // halt was tripped). This lets the bot resume trading automatically
-      // once evolution finds new winners — no manual reset required.
-      if (isHaltedByLossGuard) {
-        const hasFreshWinner = population.some(s => (s.liveWinBonus || 0) > 0);
-        if (hasFreshWinner) {
-          pushLog(`✅ [LOSS GUARD CLEARED] Fresh winning strategy emerged from evolution. Resuming trading.`);
-          isHaltedByLossGuard = false;
-        }
-      }
-    }
+      // Halt permanently removed — bot trades through drawdowns
 
     // ─── Live Binance testnet balance sync ─────────────────────────────
     // The bot trades against the real Binance testnet account, so the
