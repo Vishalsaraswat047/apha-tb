@@ -1285,13 +1285,20 @@ async function tickSimulator() {
             }
           } else {
             // Other symbols evaluate using live ticker RSI and performance change
+            // Expanded entry: RSI in oversold zone (20-35) OR RSI in neutral-low zone (< 45)
+            // This allows more coins to participate in trading
             if (coinTick.rsi <= strat.entry_rules.rsi_oversold) {
               stratVote = true;
               signalStrength = 1 - (coinTick.rsi / strat.entry_rules.rsi_oversold);
+            } else if (coinTick.rsi < 45) {
+              // Broader neutral zone entry — RSI trending up from oversold
+              stratVote = true;
+              signalStrength = (1 - (coinTick.rsi / 45)) * 0.7; // Lower weight for neutral zone
             }
+            // Broader price momentum check — trigger on any positive or mild-negative price action
             if (strat.entry_rules.price_above_ema) {
-              const isBullish = coinTick.priceChangePercent > -0.5;
-              const emaSignal = Math.min(1, Math.max(0, (coinTick.priceChangePercent + 0.5) / 5));
+              const isBullish = coinTick.priceChangePercent > -1.0; // Lowered from -0.5%
+              const emaSignal = Math.min(1, Math.max(0, (coinTick.priceChangePercent + 1.0) / 6));
               signalStrength = Math.max(signalStrength, emaSignal * 0.75);
               if (isBullish) {
                 stratVote = true;
