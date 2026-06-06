@@ -1187,15 +1187,18 @@ async function tickSimulator() {
                   ...prev.entry_rules,
                   rsi_oversold: Math.max(18, Math.min(42, prev.entry_rules.rsi_oversold - 2))
                 },
-                // Record a live-loss penalty so evolvePopulation demotes this
-                // strategy's fitness in the next generation. Decays over
-                // generations as fresh winners emerge.
+                // Record a live-loss penalty AND update cumulative live PnL
+                // so evolvePopulation demotes this strategy's fitness in the
+                // next generation. liveNetPnl accumulates the actual PnL from
+                // all of this strategy's live trades, so a single big loss
+                // can demote a strategy faster than 10 small ones.
                 liveLossPenalty: Math.min(10, (prev.liveLossPenalty || 0) + 1),
-                liveWinBonus: 0
+                liveWinBonus: 0,
+                liveNetPnl: parseFloat((((prev.liveNetPnl || 0) + (position.pnl || 0))).toFixed(4))
               };
               population[index] = evolved;
               rankPopulation();
-              pushLog(`🧠 [GENETIC MUTATION] Lost trade on ${position.symbol}. Modified parameters of strategy '${prev.name}' (Gen ${evolved.generation}). RSI triggers and Stop-Loss bounds optimized for capital preservation. Live-loss penalty now ${evolved.liveLossPenalty}.`);
+              pushLog(`🧠 [GENETIC MUTATION] Lost trade on ${position.symbol}. Modified parameters of strategy '${prev.name}' (Gen ${evolved.generation}). RSI triggers and Stop-Loss bounds optimized for capital preservation. Live-loss penalty now ${evolved.liveLossPenalty}, liveNetPnl $${evolved.liveNetPnl}.`);
             }
           }
 
