@@ -1262,10 +1262,9 @@ async function tickSimulator() {
           continue;
         }
 
-        // Per-coin evaluation after filters pass — counted as a strategy evaluation
+// Per-coin evaluation after filters pass — counted as a strategy evaluation
         // (the unconditional increment at the top of the loop already counts it as
         // an attempted evaluation, so this is the "strategy-tested" subcount).
-        tradeAttemptCount += 1;
 
         // Test all strategies and find the best one
         interface StrategyScore {
