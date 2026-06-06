@@ -1215,7 +1215,7 @@ async function tickSimulator() {
                 ...prev,
                 liveWinBonus: Math.min(10, (prev.liveWinBonus || 0) + 1),
                 liveLossPenalty: 0,
-                liveNetPnl: parseFloat((((prev.liveNetPnl || 0) + (position.pnl || 0))).toFixed(4))
+                liveNetPnl: parseFloat((((prev.liveNetPnl || 0) + (netPnl || 0))).toFixed(4))
               };
             }
           }
